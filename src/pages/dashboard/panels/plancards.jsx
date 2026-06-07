@@ -71,6 +71,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
   const scrollRef = useRef(0);
   const targetRef = useRef(0);
   const frameRef = useRef(null);
+  const positionCacheRef = useRef({}); // 위치 캐시
 
   useEffect(() => {
     scrollRef.current = 0;
@@ -116,36 +117,44 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     };
   }, []);
 
-  const filtered = plans
-    .filter((p) => p.month === activeMonth)
-    .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
+  const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
+    const filtered = plans
+      .filter((p) => p.month === activeMonth)
+      .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
 
-  // 날짜별 그룹핑 — useMemo로 고정
-const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
-  const groups = {};
-  filtered.forEach((plan) => {
-    const day = plan.day || "1";
-    if (!groups[day]) groups[day] = [];
-    groups[day].push(plan);
-  });
+    const groups = {};
+    filtered.forEach((plan) => {
+      const day = plan.day || "1";
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(plan);
+    });
 
-  const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
+    const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
 
-  // ⭐ 랜덤이지만 겹치지 않게
-  const positions = {};
-  days.forEach((day) => {
-    const usedX = Object.values(positions);
-    let x;
-    let attempts = 0;
-    do {
-      x = Math.floor(Math.random() * 2400) + 50;
-      attempts++;
-    } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
-    positions[day] = x;
-  });
+    const cache = positionCacheRef.current;
+    const positions = {};
 
-  return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
-}, [activeMonth, plans.length]);
+    days.forEach((day) => {
+      const cacheKey = `${activeMonth}-${day}`;
+      if (cache[cacheKey]) {
+        // 캐시된 위치 사용 (새로고침해도 유지)
+        positions[day] = cache[cacheKey];
+      } else {
+        // 새로 랜덤 위치 계산 (겹치지 않게)
+        const usedX = Object.values(positions);
+        let x;
+        let attempts = 0;
+        do {
+          x = Math.floor(Math.random() * 2400) + 50;
+          attempts++;
+        } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
+        positions[day] = x;
+        cache[cacheKey] = x;
+      }
+    });
+
+    return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
+  }, [activeMonth, plans]);
 
   return (
     <>
