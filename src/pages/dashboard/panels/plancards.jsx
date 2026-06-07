@@ -116,16 +116,26 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     };
   }, []);
 
-  // 날짜순 정렬
   const filtered = plans
     .filter((p) => p.month === activeMonth)
     .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
 
-  // 날짜별 그룹핑
   const dayGroups = {};
+  const dayPositions = {};
+
   filtered.forEach((plan) => {
     const day = plan.day || "1";
-    if (!dayGroups[day]) dayGroups[day] = [];
+    if (!dayGroups[day]) {
+      dayGroups[day] = [];
+      const usedX = Object.values(dayPositions);
+      let x;
+      let attempts = 0;
+      do {
+        x = Math.floor(Math.random() * 2400) + 50;
+        attempts++;
+      } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
+      dayPositions[day] = x;
+    }
     dayGroups[day].push(plan);
   });
 
@@ -171,7 +181,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
             key={day}
             style={{
               position: "absolute",
-              left: `${dayIdx * 320 + 340}px`,
+              left: `${dayPositions[day] + 300}px`,
               top: 0,
               width: "1px",
               height: "100vh",
@@ -181,7 +191,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
         ))}
 
         {/* 카드 */}
-        {uniqueDays.map((day, dayIdx) =>
+        {uniqueDays.map((day) =>
           dayGroups[day].map((plan, cardIdx) => (
             <div
               key={plan.id}
@@ -189,7 +199,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
               style={{
                 position: "absolute",
                 top: `${150 + cardIdx * 140}px`,
-                left: `${dayIdx * 320 + 50}px`,
+                left: `${dayPositions[day]}px`,
                 cursor: "pointer",
                 pointerEvents: "auto",
               }}
