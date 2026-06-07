@@ -190,16 +190,21 @@ export default function PlanCards({ plans = [], onUpdate, onDelete, animate }) {
       }
       frameRef.current = requestAnimationFrame(animate);
     };
+const handleVisibilityChange = () => {
+  if (document.hidden) targetRef.current = 0;
+};
 
     window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseleave", handleMouseLeave);
-    frameRef.current = requestAnimationFrame(animate);
+document.addEventListener("mouseleave", handleMouseLeave);
+document.addEventListener("visibilitychange", handleVisibilityChange);
+frameRef.current = requestAnimationFrame(animate);
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(frameRef.current);
-    };
+return () => {
+  window.removeEventListener("mousemove", handleMouseMove);
+  document.removeEventListener("mouseleave", handleMouseLeave);
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+  cancelAnimationFrame(frameRef.current);
+};
   }, []);
 
   const filtered = plans.filter((p) => p.month === activeMonth);
