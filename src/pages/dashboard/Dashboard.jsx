@@ -204,12 +204,9 @@ export default function Dashboard() {
             >
               예시 데이터 삭제
             </button>
-            <a
-              href="mailto:bemove@contact.com"
-              style={{ display: "block", padding: "8px", border: "1px solid #000", textDecoration: "none", color: "#000" }}
-            >
-              문의사항
-            </a>
+            <p style={{ padding: "8px", border: "1px solid #000", margin: 0, fontSize: "13px" }}>
+  문의사항: sohen0531@naver.com
+</p>
           </div>
         </div>
       </div>
