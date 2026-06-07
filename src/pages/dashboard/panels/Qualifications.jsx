@@ -26,17 +26,18 @@ export default function Qualifications({ onAdd }) {
   : "/api/groq";
 
 const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "llama3-8b-8192",
-          messages: [{ role: "user", content: `대학생을 위한 ${selected.join(", ")} 분야 자격증을 추천해주세요. 공인자격증 위주로 추천하고 시험 일정도 포함해주세요. JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마세요. 형식: [{"name": "자격증명", "field": "분야", "description": "간단한 설명", "examDate": "시험 일정 (예: 매년 3월, 6월, 9월)", "difficulty": "난이도 (상/중/하)", "period": "준비 기간"}]` }],
-          temperature: 0.7,
-        })
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    // ⭐ DEV일때만 Authorization 헤더 추가
+    ...(import.meta.env.DEV && { "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` })
+  },
+  body: JSON.stringify({
+    model: "llama3-8b-8192",
+    messages: [{ role: "user", content: `대학생을 위한 ${selected.join(", ")} 분야 자격증을 추천해주세요. 공인자격증 위주로 추천하고 시험 일정도 포함해주세요. JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마세요. 형식: [{"name": "자격증명", "field": "분야", "description": "간단한 설명", "examDate": "시험 일정 (예: 매년 3월, 6월, 9월)", "difficulty": "난이도 (상/중/하)", "period": "준비 기간"}]` }],
+    temperature: 0.7,
+  })
+});
 
       const data = await response.json();
       const text = data.choices[0].message.content;
