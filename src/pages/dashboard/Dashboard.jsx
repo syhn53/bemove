@@ -219,7 +219,7 @@ export default function Dashboard() {
         </div>
 
         {/* 일정 카드 */}
-        <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} />
+        <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} animate={activePanel === "timeline"}/>
 
         {/* NAV */}
         <nav className="nav-bar modern-nav" id="nav">

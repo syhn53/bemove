@@ -64,7 +64,7 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
   );
 }
 
-function DraggableCard({ plan, onUpdate, onClick }) {
+function DraggableCard({ plan, onUpdate, onClick, animate, idx }) {
   const dragRef = useRef(null);
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -125,6 +125,7 @@ function DraggableCard({ plan, onUpdate, onClick }) {
         cursor: "grab",
         pointerEvents: "auto",
         userSelect: "none",
+        animation: animate ? `dropIn 0.5s ease-out ${idx * 0.08}s both` : "none",
       }}
       onMouseDown={handleMouseDown}
     >
@@ -136,7 +137,7 @@ function DraggableCard({ plan, onUpdate, onClick }) {
   );
 }
 
-export default function PlanCards({ plans = [], onUpdate, onDelete }) {
+export default function PlanCards({ plans = [], onUpdate, onDelete, animate }) {
   const [activeMonth, setActiveMonth] = useState("January");
   const [editingPlan, setEditingPlan] = useState(null);
   const containerRef = useRef(null);
@@ -237,12 +238,14 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
           />
         ))}
 
-        {filtered.map((plan) => (
+        {filtered.map((plan, idx) => (
           <DraggableCard
             key={plan.id}
             plan={plan}
             onUpdate={onUpdate}
             onClick={setEditingPlan}
+            animate={animate}
+            idx={idx}
           />
         ))}
       </div>
