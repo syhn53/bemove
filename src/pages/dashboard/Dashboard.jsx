@@ -143,7 +143,7 @@ export default function Dashboard() {
     };
   }, []);
 
-  const modalPanels = ["addplan", "login", "priority", "background", "qualifications"];
+  const modalPanels = ["addplan", "login", "priority", "background", "qualifications", "settings"];
 
   const modalContent = () => {
     if (activePanel === "addplan") return (
@@ -192,6 +192,28 @@ export default function Dashboard() {
         </div>
       </div>
     );
+    if (activePanel === "settings") return (
+      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
+        <div className="modal-box">
+          <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
+          <div style={{ padding: "10px" }}>
+            <h3 style={{ marginBottom: "16px" }}>Settings</h3>
+            <button
+              onClick={() => { setSamplePlans([]); setBgImages([]); setActivePanel(null); }}
+              style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
+            >
+              예시 데이터 삭제
+            </button>
+            
+              href="mailto:bemove@contact.com"
+              style={{ display: "block", padding: "8px", border: "1px solid #000", textDecoration: "none", color: "#000" }}
+            >
+              문의사항
+            </a>
+          </div>
+        </div>
+      </div>
+    );
     return null;
   };
 
@@ -199,7 +221,6 @@ export default function Dashboard() {
     <>
       <div className="scene">
 
-        {/* 배경 + 이미지들 — bg-layer 안에 있어야 패럴랙스 적용됨 */}
         <div className="bg-layer" id="bg" style={{ background: bgColor }}>
           {bgImages.map((img) => (
             <div
@@ -218,8 +239,7 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* 일정 카드 */}
-        <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} animate={activePanel === "timeline"}/>
+        <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} animate={activePanel === "timeline"} />
 
         {/* NAV */}
         <nav className="nav-bar modern-nav" id="nav">
@@ -242,6 +262,13 @@ export default function Dashboard() {
                 {label}
               </button>
             ))}
+            {/* settings 버튼 */}
+            <button
+              className={`nav-box settings ${activePanel === "settings" ? "active" : ""}`}
+              onClick={() => togglePanel("settings")}
+            >
+              settings
+            </button>
           </div>
         </nav>
 
