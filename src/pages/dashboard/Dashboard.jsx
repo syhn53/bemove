@@ -14,6 +14,32 @@ import { auth, db } from "../../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
 
+const getRandomPosition = (existingPlans) => {
+  const cardW = 290;
+  const cardH = 120;
+  const maxAttempts = 50;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const top = Math.floor(Math.random() * 400) + 100;
+    const left = Math.floor(Math.random() * 1800) + 50;
+
+    const overlaps = existingPlans.some((p) => {
+      return (
+        Math.abs(p.left - left) < cardW &&
+        Math.abs(p.top - top) < cardH
+      );
+    });
+
+    if (!overlaps) return { top, left };
+  }
+
+  return {
+    top: Math.floor(Math.random() * 400) + 100,
+    left: Math.floor(Math.random() * 1800) + 50,
+  };
+};
+
+
 export default function Dashboard() {
   const [activePanel, setActivePanel] = useState(null);
   const [bgImages, setBgImages] = useState([]);
@@ -53,11 +79,13 @@ export default function Dashboard() {
   }, []);
 
   const addPlan = async (newPlan) => {
-    if (!user) return alert("로그인이 필요해요!");
-    const plan = { ...newPlan, id: Date.now(), uid: user.uid };
-    const docRef = await addDoc(collection(db, "plans"), plan);
-    setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
-  };
+  if (!user) return alert("로그인이 필요해요!");
+  const allPlans = [...samplePlans, ...plans];
+  const { top, left } = getRandomPosition(allPlans); // ⭐ 겹침 방지
+  const plan = { ...newPlan, id: Date.now(), uid: user.uid, top, left };
+  const docRef = await addDoc(collection(db, "plans"), plan);
+  setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
+};
 
   const updatePlan = async (updatedPlan) => {
     if (!updatedPlan.firestoreId) return;
@@ -83,31 +111,51 @@ export default function Dashboard() {
     setActivePanel((prev) => (prev === name ? null : name));
   };
 
-  useEffect(() => {
-    const boxes = document.querySelectorAll(".float-box, .yellow-bar");
-    const bg = document.getElementById("bg");
-    let mx = 0;
-    let cx = 0;
-    const mouseMove = (e) => { mx = e.clientX / window.innerWidth - 0.5; };
-    document.addEventListener("mousemove", mouseMove);
-    const lerp = (a, b, t) => a + (b - a) * t;
-    let frame;
-    const animate = () => {
-      cx = lerp(cx, mx, 0.07);
-      if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
-      boxes.forEach((box) => {
-        const speed = parseFloat(box.dataset.speed || 0.05);
-        box.style.transform = `translateX(${cx * speed * 600}px)`;
-      });
-      frame = requestAnimationFrame(animate);
-    };
-    animate();
-    return () => {
-      document.removeEventListener("mousemove", mouseMove);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
+useEffect(() => {
+  const boxes = document.querySelectorAll(".float-box, .yellow-bar");
+  const bg = document.getElementById("bg");
+  let mx = 0;
+  let cx = 0;
 
+  const mouseMove = (e) => {
+    if (
+      e.clientX >= 0 &&
+      e.clientX <= window.innerWidth &&
+      e.clientY >= 0 &&
+      e.clientY <= window.innerHeight
+    ) {
+      mx = e.clientX / window.innerWidth - 0.5;
+    }
+  };
+
+  const mouseLeave = () => {
+    mx = 0;
+  };
+
+  document.addEventListener("mousemove", mouseMove);
+  document.addEventListener("mouseleave", mouseLeave);
+
+  const lerp = (a, b, t) => a + (b - a) * t;
+  let frame;
+
+  const animate = () => {
+    cx = lerp(cx, mx, 0.07);
+    if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
+    boxes.forEach((box) => {
+      const speed = parseFloat(box.dataset.speed || 0.05);
+      box.style.transform = `translateX(${cx * speed * 600}px)`;
+    });
+    frame = requestAnimationFrame(animate);
+  };
+
+  animate();
+
+  return () => {
+    document.removeEventListener("mousemove", mouseMove);
+    document.removeEventListener("mouseleave", mouseLeave);
+    cancelAnimationFrame(frame);
+  };
+}, []);
   const modalPanels = ["addplan", "login", "priority", "background", "qualifications"];
 
   // 모달 내용

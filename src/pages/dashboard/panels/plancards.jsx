@@ -30,7 +30,6 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
     <div style={{ background: "#fff", width: "400px", padding: "28px 24px", position: "relative" }}>
       <button onClick={onClose} style={{ position: "absolute", top: 12, right: 14, border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>✕</button>
       <h3 style={{ margin: "0 0 12px 0" }}>Edit Plan</h3>
-
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         <div style={{ display: "flex", gap: "6px" }}>
           <select style={selectStyle} value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })}>
@@ -40,7 +39,6 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
             {days.map((d) => <option key={d}>{d}</option>)}
           </select>
         </div>
-
         <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <select style={selectStyle} value={form.startTime || ""} onChange={(e) => setForm({ ...form, startTime: e.target.value })}>
             <option value="">미입력</option>
@@ -52,14 +50,11 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
             {times.map((t) => <option key={t}>{t}</option>)}
           </select>
         </div>
-
         <input style={inputStyle} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title" />
         <textarea style={{ ...inputStyle, height: "60px", resize: "none" }} value={form.contents || ""} onChange={(e) => setForm({ ...form, contents: e.target.value })} placeholder="Contents" />
-
         <select style={selectStyle} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
           {categories.map((c) => <option key={c}>{c}</option>)}
         </select>
-
         <div style={{ display: "flex", gap: "8px" }}>
           <button onClick={handleSave} style={{ flex: 1, background: "#000", color: "#fff", padding: "6px", border: "none", cursor: "pointer" }}>저장</button>
           <button onClick={() => onDelete(plan.id, plan.firestoreId)} style={{ flex: 1, background: "#ff3333", color: "#fff", padding: "6px", border: "none", cursor: "pointer" }}>삭제</button>
@@ -111,7 +106,10 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     };
   }, []);
 
-  const filtered = plans.filter((p) => p.month === activeMonth);
+  // ⭐ 날짜순 정렬
+  const filtered = plans
+    .filter((p) => p.month === activeMonth)
+    .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
 
   return (
     <>
@@ -162,14 +160,15 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
           />
         ))}
 
-        {filtered.map((plan) => (
+        {/* ⭐ idx 기반으로 left 자동 계산 */}
+        {filtered.map((plan, idx) => (
           <div
             key={plan.id}
             className="plan-card"
             style={{
               position: "absolute",
               top: `${plan.top + 100}px`,
-              left: `${plan.left}px`,
+              left: `${idx * 320 + 50}px`,
               cursor: "pointer",
               pointerEvents: "auto",
             }}
