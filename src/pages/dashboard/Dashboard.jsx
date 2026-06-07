@@ -109,38 +109,32 @@ export default function Dashboard() {
     let mx = 0;
     let cx = 0;
 
-    const mouseMove = (e) => {
-      if (e.clientX >= 0 && e.clientX <= window.innerWidth &&
-          e.clientY >= 0 && e.clientY <= window.innerHeight) {
-        mx = e.clientX / window.innerWidth - 0.5;
-      }
-    };
+   const mouseMove = (e) => {
+  if (e.clientX >= 0 && e.clientX <= window.innerWidth &&
+      e.clientY >= 0 && e.clientY <= window.innerHeight) {
+    mx = e.clientX / window.innerWidth - 0.5;
+  } else {
+    mx = 0; // ⭐ 창 밖이면 바로 0으로
+  }
+};
 
-    const mouseLeave = () => { mx = 0; };
+const mouseLeave = () => { mx = 0; };
 
-    document.addEventListener("mousemove", mouseMove);
-    document.addEventListener("mouseleave", mouseLeave);
+const visibilityChange = () => {
+  if (document.hidden) mx = 0; // ⭐ 탭 전환시 멈춤
+};
 
-    const lerp = (a, b, t) => a + (b - a) * t;
-    let frame;
+document.addEventListener("mousemove", mouseMove);
+document.addEventListener("mouseleave", mouseLeave);
+document.addEventListener("visibilitychange", visibilityChange);
 
-    const animate = () => {
-      cx = lerp(cx, mx, 0.07);
-      if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
-      boxes.forEach((box) => {
-        const speed = parseFloat(box.dataset.speed || 0.05);
-        box.style.transform = `translateX(${cx * speed * 600}px)`;
-      });
-      frame = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      document.removeEventListener("mousemove", mouseMove);
-      document.removeEventListener("mouseleave", mouseLeave);
-      cancelAnimationFrame(frame);
-    };
+// cleanup에도 추가
+return () => {
+  document.removeEventListener("mousemove", mouseMove);
+  document.removeEventListener("mouseleave", mouseLeave);
+  document.removeEventListener("visibilitychange", visibilityChange);
+  cancelAnimationFrame(frame);
+};
   }, []);
 
   const modalPanels = ["addplan", "login", "priority", "background", "qualifications", "settings"];
