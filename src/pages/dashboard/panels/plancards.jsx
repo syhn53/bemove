@@ -64,6 +64,78 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
   );
 }
 
+function DraggableCard({ plan, onUpdate, onClick }) {
+  const dragRef = useRef(null);
+  const isDragging = useRef(false);
+  const startPos = useRef({ x: 0, y: 0 });
+  const startCard = useRef({ top: 0, left: 0 });
+  const moved = useRef(false);
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    isDragging.current = true;
+    moved.current = false;
+    startPos.current = { x: e.clientX, y: e.clientY };
+    startCard.current = { top: plan.top, left: plan.left };
+    e.stopPropagation();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved.current = true;
+    if (dragRef.current) {
+      dragRef.current.style.left = `${startCard.current.left + dx}px`;
+      dragRef.current.style.top = `${startCard.current.top + dy + 100}px`;
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    if (moved.current) {
+      const dx = e.clientX - startPos.current.x;
+      const dy = e.clientY - startPos.current.y;
+      const newLeft = startCard.current.left + dx;
+      const newTop = startCard.current.top + dy;
+      onUpdate({ ...plan, left: newLeft, top: newTop });
+    } else {
+      onClick(plan);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [plan]);
+
+  return (
+    <div
+      ref={dragRef}
+      className="plan-card"
+      style={{
+        position: "absolute",
+        top: `${plan.top + 100}px`,
+        left: `${plan.left}px`,
+        cursor: "grab",
+        pointerEvents: "auto",
+        userSelect: "none",
+      }}
+      onMouseDown={handleMouseDown}
+    >
+      <p className="plan-date">*****{plan.date}</p>
+      <p className="plan-title">{plan.title}</p>
+      <p className="plan-person">{plan.contents}</p>
+      <p className="plan-category">((((( {plan.category} )))))</p>
+    </div>
+  );
+}
+
 export default function PlanCards({ plans = [], onUpdate, onDelete }) {
   const [activeMonth, setActiveMonth] = useState("January");
   const [editingPlan, setEditingPlan] = useState(null);
@@ -166,23 +238,12 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
         ))}
 
         {filtered.map((plan) => (
-          <div
+          <DraggableCard
             key={plan.id}
-            className="plan-card"
-            style={{
-              position: "absolute",
-              top: `${plan.top + 100}px`,
-              left: `${plan.left}px`,
-              cursor: "pointer",
-              pointerEvents: "auto",
-            }}
-            onClick={() => setEditingPlan(plan)}
-          >
-            <p className="plan-date">*****{plan.date}</p>
-            <p className="plan-title">{plan.title}</p>
-            <p className="plan-person">{plan.contents}</p>
-            <p className="plan-category">((((( {plan.category} )))))</p>
-          </div>
+            plan={plan}
+            onUpdate={onUpdate}
+            onClick={setEditingPlan}
+          />
         ))}
       </div>
 

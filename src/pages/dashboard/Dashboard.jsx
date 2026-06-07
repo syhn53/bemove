@@ -18,27 +18,19 @@ const getRandomPosition = (existingPlans) => {
   const cardW = 290;
   const cardH = 120;
   const maxAttempts = 50;
-
   for (let i = 0; i < maxAttempts; i++) {
     const top = Math.floor(Math.random() * 400) + 100;
     const left = Math.floor(Math.random() * 1800) + 50;
-
-    const overlaps = existingPlans.some((p) => {
-      return (
-        Math.abs(p.left - left) < cardW &&
-        Math.abs(p.top - top) < cardH
-      );
-    });
-
+    const overlaps = existingPlans.some((p) => (
+      Math.abs(p.left - left) < cardW && Math.abs(p.top - top) < cardH
+    ));
     if (!overlaps) return { top, left };
   }
-
   return {
     top: Math.floor(Math.random() * 400) + 100,
     left: Math.floor(Math.random() * 1800) + 50,
   };
 };
-
 
 export default function Dashboard() {
   const [activePanel, setActivePanel] = useState(null);
@@ -79,13 +71,13 @@ export default function Dashboard() {
   }, []);
 
   const addPlan = async (newPlan) => {
-  if (!user) return alert("로그인이 필요해요!");
-  const allPlans = [...samplePlans, ...plans];
-  const { top, left } = getRandomPosition(allPlans); // ⭐ 겹침 방지
-  const plan = { ...newPlan, id: Date.now(), uid: user.uid, top, left };
-  const docRef = await addDoc(collection(db, "plans"), plan);
-  setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
-};
+    if (!user) return alert("로그인이 필요해요!");
+    const allPlans = [...samplePlans, ...plans];
+    const { top, left } = getRandomPosition(allPlans);
+    const plan = { ...newPlan, id: Date.now(), uid: user.uid, top, left };
+    const docRef = await addDoc(collection(db, "plans"), plan);
+    setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
+  };
 
   const updatePlan = async (updatedPlan) => {
     if (!updatedPlan.firestoreId) return;
@@ -111,54 +103,48 @@ export default function Dashboard() {
     setActivePanel((prev) => (prev === name ? null : name));
   };
 
-useEffect(() => {
-  const boxes = document.querySelectorAll(".float-box, .yellow-bar");
-  const bg = document.getElementById("bg");
-  let mx = 0;
-  let cx = 0;
+  useEffect(() => {
+    const boxes = document.querySelectorAll(".float-box, .yellow-bar");
+    const bg = document.getElementById("bg");
+    let mx = 0;
+    let cx = 0;
 
-  const mouseMove = (e) => {
-    if (
-      e.clientX >= 0 &&
-      e.clientX <= window.innerWidth &&
-      e.clientY >= 0 &&
-      e.clientY <= window.innerHeight
-    ) {
-      mx = e.clientX / window.innerWidth - 0.5;
-    }
-  };
+    const mouseMove = (e) => {
+      if (e.clientX >= 0 && e.clientX <= window.innerWidth &&
+          e.clientY >= 0 && e.clientY <= window.innerHeight) {
+        mx = e.clientX / window.innerWidth - 0.5;
+      }
+    };
 
-  const mouseLeave = () => {
-    mx = 0;
-  };
+    const mouseLeave = () => { mx = 0; };
 
-  document.addEventListener("mousemove", mouseMove);
-  document.addEventListener("mouseleave", mouseLeave);
+    document.addEventListener("mousemove", mouseMove);
+    document.addEventListener("mouseleave", mouseLeave);
 
-  const lerp = (a, b, t) => a + (b - a) * t;
-  let frame;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    let frame;
 
-  const animate = () => {
-    cx = lerp(cx, mx, 0.07);
-    if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
-    boxes.forEach((box) => {
-      const speed = parseFloat(box.dataset.speed || 0.05);
-      box.style.transform = `translateX(${cx * speed * 600}px)`;
-    });
-    frame = requestAnimationFrame(animate);
-  };
+    const animate = () => {
+      cx = lerp(cx, mx, 0.07);
+      if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
+      boxes.forEach((box) => {
+        const speed = parseFloat(box.dataset.speed || 0.05);
+        box.style.transform = `translateX(${cx * speed * 600}px)`;
+      });
+      frame = requestAnimationFrame(animate);
+    };
 
-  animate();
+    animate();
 
-  return () => {
-    document.removeEventListener("mousemove", mouseMove);
-    document.removeEventListener("mouseleave", mouseLeave);
-    cancelAnimationFrame(frame);
-  };
-}, []);
+    return () => {
+      document.removeEventListener("mousemove", mouseMove);
+      document.removeEventListener("mouseleave", mouseLeave);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const modalPanels = ["addplan", "login", "priority", "background", "qualifications"];
 
-  // 모달 내용
   const modalContent = () => {
     if (activePanel === "addplan") return (
       <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
@@ -213,25 +199,24 @@ useEffect(() => {
     <>
       <div className="scene">
 
-        {/* 배경 */}
-        <div className="bg-layer" id="bg" style={{ background: bgColor }} />
-
-        {/* 배경 이미지들 */}
-        {bgImages.map((img) => (
-          <div
-            key={img.id}
-            style={{
-              position: "absolute",
-              width: `${img.width}px`,
-              height: `${img.height}px`,
-              top: `${img.top}px`,
-              left: `${img.left}px`,
-              backgroundImage: `url(${img.url})`,
-              backgroundSize: "cover",
-              zIndex: 1,
-            }}
-          />
-        ))}
+        {/* 배경 + 이미지들 — bg-layer 안에 있어야 패럴랙스 적용됨 */}
+        <div className="bg-layer" id="bg" style={{ background: bgColor }}>
+          {bgImages.map((img) => (
+            <div
+              key={img.id}
+              style={{
+                position: "absolute",
+                width: `${img.width}px`,
+                height: `${img.height}px`,
+                top: `${img.top}px`,
+                left: `${img.left}px`,
+                backgroundImage: `url(${img.url})`,
+                backgroundSize: "cover",
+                zIndex: 0,
+              }}
+            />
+          ))}
+        </div>
 
         {/* 일정 카드 */}
         <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} />
@@ -272,7 +257,6 @@ useEffect(() => {
         <div className="yellow-bar ybar2" data-speed="0.065" />
       </div>
 
-      {/* 모달은 scene 밖 body에 렌더링 */}
       {createPortal(modalContent(), document.body)}
     </>
   );
