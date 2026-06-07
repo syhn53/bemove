@@ -121,24 +121,31 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
 
   // 날짜별 그룹핑 — useMemo로 고정
-  const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
-    const groups = {};
-    filtered.forEach((plan) => {
-      const day = plan.day || "1";
-      if (!groups[day]) groups[day] = [];
-      groups[day].push(plan);
-    });
+const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
+  const groups = {};
+  filtered.forEach((plan) => {
+    const day = plan.day || "1";
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(plan);
+  });
 
-    const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
+  const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
 
-    // 날짜순으로 왼쪽부터 배치 (각 열 간격 320px)
-    const positions = {};
-    days.forEach((day, idx) => {
-      positions[day] = idx * 320 + 50;
-    });
+  // ⭐ 랜덤이지만 겹치지 않게
+  const positions = {};
+  days.forEach((day) => {
+    const usedX = Object.values(positions);
+    let x;
+    let attempts = 0;
+    do {
+      x = Math.floor(Math.random() * 2400) + 50;
+      attempts++;
+    } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
+    positions[day] = x;
+  });
 
-    return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
-  }, [activeMonth, plans.length]); // plans.length 바뀔때만 재계산
+  return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
+}, [activeMonth, plans.length]);
 
   return (
     <>
