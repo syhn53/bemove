@@ -37,40 +37,39 @@ export default function Ai({ plans = [] }) {
     ).join("\n");
 
     try {
-  const url = import.meta.env.DEV
-  ? "/api/groq/openai/v1/chat/completions"
-  : "/api/groq";
+      const url = import.meta.env.DEV
+        ? "/api/groq/openai/v1/chat/completions"
+        : "/api/groq";
 
-const response = await fetch(url, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    // ⭐ DEV일때만 Authorization 헤더 추가
-    ...(import.meta.env.DEV && { "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` })
-  },
-  body: JSON.stringify({
-    model: "llama-3.1-8b-instant",
-    messages: [{ role: "user", content: `대학생을 위한 ${selected.join(", ")} 분야 자격증을 추천해주세요. 공인자격증 위주로 추천하고 시험 일정도 포함해주세요. JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마세요. 형식: [{"name": "자격증명", "field": "분야", "description": "간단한 설명", "examDate": "시험 일정 (예: 매년 3월, 6월, 9월)", "difficulty": "난이도 (상/중/하)", "period": "준비 기간"}]` }],
-    temperature: 0.7,
-  })
-});
-  const data = await response.json();
-  const text = data.choices[0].message.content;
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(clean);
-  setResult(parsed);
-} catch (e) {
-  alert("분석 중 오류가 발생했어요.");
-}
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(import.meta.env.DEV && { "Authorization": `Bearer ${import.meta.env.VITE_GROQ_API_KEY}` })
+        },
+        body: JSON.stringify({
+          model: "llama-3.1-8b-instant",
+          messages: [{ role: "user", content: `다음 일정 목록을 분석해서 우선순위를 매겨주세요. JSON 형식으로만 응답하고 다른 텍스트는 절대 포함하지 마세요. 형식: [{"rank": 1, "title": "제목", "reason": "이유", "estimatedTime": "예상 시간"}]\n\n${planText}` }],
+          temperature: 0.7,
+        })
+      });
 
-setLoading(false);
+      const data = await response.json();
+      const text = data.choices[0].message.content;
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      setResult(parsed);
+    } catch (e) {
+      alert("분석 중 오류가 발생했어요.");
+    }
+
+    setLoading(false);
   };
 
   return (
     <div style={{ padding: "16px" }}>
       <h3 style={{ marginBottom: "12px" }}>AI 우선순위 분석</h3>
 
-      {/* 기간 선택 */}
       <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "12px" }}>
         <select style={selectStyle} value={startMonth} onChange={(e) => setStartMonth(e.target.value)}>
           {months.map((m) => <option key={m}>{m}</option>)}
