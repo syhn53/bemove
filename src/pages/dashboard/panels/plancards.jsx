@@ -78,6 +78,10 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
+      if (e.clientX < 0 || e.clientX > window.innerWidth) {
+        targetRef.current = 0;
+        return;
+      }
       const x = e.clientX / window.innerWidth;
       if (x > 0.7) {
         targetRef.current = ((x - 0.7) / 0.3) * 8;
@@ -86,6 +90,10 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
       } else {
         targetRef.current = 0;
       }
+    };
+
+    const handleMouseLeave = () => {
+      targetRef.current = 0;
     };
 
     const animate = () => {
@@ -98,18 +106,30 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     };
 
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseleave", handleMouseLeave);
     frameRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
       cancelAnimationFrame(frameRef.current);
     };
   }, []);
 
-  // ⭐ 날짜순 정렬
+  // 날짜순 정렬
   const filtered = plans
     .filter((p) => p.month === activeMonth)
     .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
+
+  // 날짜별 그룹핑
+  const dayGroups = {};
+  filtered.forEach((plan) => {
+    const day = plan.day || "1";
+    if (!dayGroups[day]) dayGroups[day] = [];
+    dayGroups[day].push(plan);
+  });
+
+  const uniqueDays = Object.keys(dayGroups).sort((a, b) => parseInt(a) - parseInt(b));
 
   return (
     <>
@@ -146,12 +166,12 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
       <div ref={containerRef} style={{ position: "absolute", top: 0, left: 0, width: "3000px" }}>
 
         {/* 세로 구분선 */}
-        {[400, 800, 1200, 1600, 2000, 2400, 2800].map((x) => (
+        {uniqueDays.map((day, dayIdx) => (
           <div
-            key={x}
+            key={day}
             style={{
               position: "absolute",
-              left: `${x}px`,
+              left: `${dayIdx * 320 + 340}px`,
               top: 0,
               width: "1px",
               height: "100vh",
@@ -160,26 +180,28 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
           />
         ))}
 
-        {/* ⭐ idx 기반으로 left 자동 계산 */}
-        {filtered.map((plan, idx) => (
-          <div
-            key={plan.id}
-            className="plan-card"
-            style={{
-              position: "absolute",
-              top: `${plan.top + 100}px`,
-              left: `${idx * 320 + 50}px`,
-              cursor: "pointer",
-              pointerEvents: "auto",
-            }}
-            onClick={() => setEditingPlan(plan)}
-          >
-            <p className="plan-date">*****{plan.date}</p>
-            <p className="plan-title">{plan.title}</p>
-            <p className="plan-person">{plan.contents}</p>
-            <p className="plan-category">((((( {plan.category} )))))</p>
-          </div>
-        ))}
+        {/* 카드 */}
+        {uniqueDays.map((day, dayIdx) =>
+          dayGroups[day].map((plan, cardIdx) => (
+            <div
+              key={plan.id}
+              className="plan-card"
+              style={{
+                position: "absolute",
+                top: `${150 + cardIdx * 140}px`,
+                left: `${dayIdx * 320 + 50}px`,
+                cursor: "pointer",
+                pointerEvents: "auto",
+              }}
+              onClick={() => setEditingPlan(plan)}
+            >
+              <p className="plan-date">*****{plan.date}</p>
+              <p className="plan-title">{plan.title}</p>
+              <p className="plan-person">{plan.contents}</p>
+              <p className="plan-category">((((( {plan.category} )))))</p>
+            </div>
+          ))
+        )}
       </div>
 
       {/* 수정 모달 */}
