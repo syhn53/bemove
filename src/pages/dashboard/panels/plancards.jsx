@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -71,7 +71,6 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
   const scrollRef = useRef(0);
   const targetRef = useRef(0);
   const frameRef = useRef(null);
-  const positionCacheRef = useRef({}); // 위치 캐시
 
   useEffect(() => {
     scrollRef.current = 0;
@@ -117,44 +116,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     };
   }, []);
 
-  const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
-    const filtered = plans
-      .filter((p) => p.month === activeMonth)
-      .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
-
-    const groups = {};
-    filtered.forEach((plan) => {
-      const day = plan.day || "1";
-      if (!groups[day]) groups[day] = [];
-      groups[day].push(plan);
-    });
-
-    const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
-
-    const cache = positionCacheRef.current;
-    const positions = {};
-
-    days.forEach((day) => {
-      const cacheKey = `${activeMonth}-${day}`;
-      if (cache[cacheKey]) {
-        // 캐시된 위치 사용 (새로고침해도 유지)
-        positions[day] = cache[cacheKey];
-      } else {
-        // 새로 랜덤 위치 계산 (겹치지 않게)
-        const usedX = Object.values(positions);
-        let x;
-        let attempts = 0;
-        do {
-          x = Math.floor(Math.random() * 2400) + 50;
-          attempts++;
-        } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
-        positions[day] = x;
-        cache[cacheKey] = x;
-      }
-    });
-
-    return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
-  }, [activeMonth, plans]);
+  const filtered = plans.filter((p) => p.month === activeMonth);
 
   return (
     <>
@@ -189,14 +151,12 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
 
       {/* 카드 */}
       <div ref={containerRef} style={{ position: "absolute", top: 0, left: 0, width: "3000px" }}>
-
-        {/* 세로 구분선 */}
-        {uniqueDays.map((day) => (
+        {[400, 800, 1200, 1600, 2000, 2400, 2800].map((x) => (
           <div
-            key={day}
+            key={x}
             style={{
               position: "absolute",
-              left: `${dayPositions[day] + 300}px`,
+              left: `${x}px`,
               top: 0,
               width: "1px",
               height: "100vh",
@@ -205,28 +165,25 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
           />
         ))}
 
-        {/* 카드 */}
-        {uniqueDays.map((day) =>
-          dayGroups[day].map((plan, cardIdx) => (
-            <div
-              key={plan.id}
-              className="plan-card"
-              style={{
-                position: "absolute",
-                top: `${150 + cardIdx * 140}px`,
-                left: `${dayPositions[day]}px`,
-                cursor: "pointer",
-                pointerEvents: "auto",
-              }}
-              onClick={() => setEditingPlan(plan)}
-            >
-              <p className="plan-date">*****{plan.date}</p>
-              <p className="plan-title">{plan.title}</p>
-              <p className="plan-person">{plan.contents}</p>
-              <p className="plan-category">((((( {plan.category} )))))</p>
-            </div>
-          ))
-        )}
+        {filtered.map((plan) => (
+          <div
+            key={plan.id}
+            className="plan-card"
+            style={{
+              position: "absolute",
+              top: `${plan.top + 100}px`,
+              left: `${plan.left}px`,
+              cursor: "pointer",
+              pointerEvents: "auto",
+            }}
+            onClick={() => setEditingPlan(plan)}
+          >
+            <p className="plan-date">*****{plan.date}</p>
+            <p className="plan-title">{plan.title}</p>
+            <p className="plan-person">{plan.contents}</p>
+            <p className="plan-category">((((( {plan.category} )))))</p>
+          </div>
+        ))}
       </div>
 
       {/* 수정 모달 */}
