@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
 const months = [
   "January", "February", "March", "April", "May", "June",
@@ -120,26 +120,25 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
     .filter((p) => p.month === activeMonth)
     .sort((a, b) => parseInt(a.day || 1) - parseInt(b.day || 1));
 
-  const dayGroups = {};
-  const dayPositions = {};
+  // 날짜별 그룹핑 — useMemo로 고정
+  const { dayGroups, uniqueDays, dayPositions } = useMemo(() => {
+    const groups = {};
+    filtered.forEach((plan) => {
+      const day = plan.day || "1";
+      if (!groups[day]) groups[day] = [];
+      groups[day].push(plan);
+    });
 
-  filtered.forEach((plan) => {
-    const day = plan.day || "1";
-    if (!dayGroups[day]) {
-      dayGroups[day] = [];
-      const usedX = Object.values(dayPositions);
-      let x;
-      let attempts = 0;
-      do {
-        x = Math.floor(Math.random() * 2400) + 50;
-        attempts++;
-      } while (usedX.some(ux => Math.abs(ux - x) < 320) && attempts < 50);
-      dayPositions[day] = x;
-    }
-    dayGroups[day].push(plan);
-  });
+    const days = Object.keys(groups).sort((a, b) => parseInt(a) - parseInt(b));
 
-  const uniqueDays = Object.keys(dayGroups).sort((a, b) => parseInt(a) - parseInt(b));
+    // 날짜순으로 왼쪽부터 배치 (각 열 간격 320px)
+    const positions = {};
+    days.forEach((day, idx) => {
+      positions[day] = idx * 320 + 50;
+    });
+
+    return { dayGroups: groups, uniqueDays: days, dayPositions: positions };
+  }, [activeMonth, plans.length]); // plans.length 바뀔때만 재계산
 
   return (
     <>
@@ -176,7 +175,7 @@ export default function PlanCards({ plans = [], onUpdate, onDelete }) {
       <div ref={containerRef} style={{ position: "absolute", top: 0, left: 0, width: "3000px" }}>
 
         {/* 세로 구분선 */}
-        {uniqueDays.map((day, dayIdx) => (
+        {uniqueDays.map((day) => (
           <div
             key={day}
             style={{
