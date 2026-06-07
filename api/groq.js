@@ -7,11 +7,12 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
-    // 직접 하드코딩으로 테스트
-    const testBody = {
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+
+    // model 강제 지정
+    const groqBody = {
+      ...body,
       model: "llama-3.1-8b-instant",
-      messages: [{ role: "user", content: "hello" }],
-      temperature: 0.7,
     };
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${process.env.VITE_GROQ_API_KEY}`
       },
-      body: JSON.stringify(testBody)
+      body: JSON.stringify(groqBody)
     });
 
     const data = await response.json();
