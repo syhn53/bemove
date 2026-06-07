@@ -81,16 +81,29 @@ function DraggableCard({ plan, onUpdate, onClick, animate, idx }) {
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - startPos.current.x;
-    const dy = e.clientY - startPos.current.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved.current = true;
-    if (dragRef.current) {
-      dragRef.current.style.left = `${startCard.current.left + dx}px`;
-      dragRef.current.style.top = `${startCard.current.top + dy + 100}px`;
-    }
-  };
+  if (e.clientX < 0 || e.clientX > window.innerWidth ||
+      e.clientY < 0 || e.clientY > window.innerHeight) {
+    targetRef.current = 0;
+    return;
+  }
+  const x = e.clientX / window.innerWidth;
+  if (x > 0.7) {
+    targetRef.current = ((x - 0.7) / 0.3) * 8;
+  } else if (x < 0.3) {
+    targetRef.current = -(((0.3 - x) / 0.3) * 8);
+  } else {
+    targetRef.current = 0;
+  }
+};
 
+const handleVisibilityChange = () => {
+  if (document.hidden) targetRef.current = 0;
+};
+
+document.addEventListener("visibilitychange", handleVisibilityChange);
+
+// cleanup에도
+document.removeEventListener("visibilitychange", handleVisibilityChange);
   const handleMouseUp = (e) => {
     if (!isDragging.current) return;
     isDragging.current = false;
