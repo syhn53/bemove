@@ -277,12 +277,11 @@ export default function Dashboard() {
 {showHint && (
   <div style={{
     position: "fixed",
-    top: "85px",
-    left: "20px",  // ⭐ 왼쪽으로
-    transform: "none",
+    top: "42px",
+    right: "10px",  // ⭐ 오른쪽 끝 login 버튼 아래
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-start",
+    alignItems: "flex-end",
     gap: "4px",
     zIndex: 50,
     pointerEvents: "none",
