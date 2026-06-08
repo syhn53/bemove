@@ -124,11 +124,49 @@ export default function Report() {
         개발 과정에서 GitHub Push Protection으로 인한 API 키 노출 문제, 브라우저 CORS 정책으로 인한 AI API 호출 불가 문제, Firebase .env 파일 위치 오류 및 중복 초기화 문제, Vercel 환경변수 설정 오류, 마우스 이벤트가 브라우저 창 밖에서도 동작하는 문제 등을 해결하였다. 각 문제는 commit 기록 초기화, Vercel Serverless Function 도입, getApps() 조건 추가, document 이벤트 리스너 변경 및 visibilitychange 이벤트 추가 등으로 해결하였다.
       </p>
 
+<h3 style={{ marginBottom: "8px", fontSize: "15px", borderBottom: "1px solid #000", paddingBottom: "4px", marginTop: "20px" }}>7. 모바일 페이지 구현</h3>
+<p style={{ fontSize: "13px", lineHeight: "1.9", marginBottom: "12px", color: "#333" }}>
+  데스크탑 전용으로 개발된 bemove를 모바일 환경에서도 사용할 수 있도록 별도 모바일 페이지(DashboardMobile.jsx)를 구현하였다. App.jsx에서 window.innerWidth 768px 미만일 경우 자동으로 모바일 페이지로 분기되며, resize 이벤트를 감지하여 화면 크기 변경 시에도 자동으로 전환된다.
+</p>
+
+<p style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "4px" }}>7.1 데스크탑과의 주요 차이점</p>
+<table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px", fontSize: "12px" }}>
+  <thead>
+    <tr style={{ background: "#f0f0f0" }}>
+      <th style={{ padding: "8px", border: "1px solid #ddd", textAlign: "left" }}>데스크탑</th>
+      <th style={{ padding: "8px", border: "1px solid #ddd", textAlign: "left" }}>모바일</th>
+    </tr>
+  </thead>
+  <tbody>
+    {[
+      ["마우스 패럴랙스 배경 이동", "제거 (터치 환경 불필요)"],
+      ["플랜카드 자유 배치/드래그", "날짜순 리스트 형태로 표시"],
+      ["상단 nav 버튼 가로 나열", "햄버거 메뉴(☰) → 오른쪽 사이드 패널"],
+      ["마우스로 가로 스크롤", "스와이프로 월 이동"],
+      ["모달 고정 크기", "92vw 반응형 모달"],
+    ].map(([a, b], i) => (
+      <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+        <td style={{ padding: "7px", border: "1px solid #ddd", color: "#666" }}>{a}</td>
+        <td style={{ padding: "7px", border: "1px solid #ddd" }}>{b}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+
+<p style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "4px" }}>7.2 구현 기능</p>
+<p style={{ fontSize: "13px", lineHeight: "1.9", marginBottom: "16px", color: "#333" }}>
+  스와이프로 월 이동(touchstart/touchend, dx 50px 이상), 햄버거 메뉴에서 priority/timeline/qualifications/background/ai recommend priority/로그인/예시 데이터 삭제 기능을 제공한다. 비로그인 상태에서도 플랜 추가가 가능하며 로그인 후 Firestore에 자동 동기화된다. 카테고리별 색상으로 플랜을 구분하여 가독성을 높였다.
+</p>
+
+<p style={{ fontSize: "13px", fontWeight: "bold", marginBottom: "4px" }}>7.3 향후 개선 사항</p>
+<p style={{ fontSize: "13px", lineHeight: "1.9", color: "#333" }}>
+  모바일 페이지는 기본 기능을 구현하였으나 데스크탑과의 UI 일관성 개선 및 터치 인터랙션 고도화가 필요하다. 플랜 카드 수정 기능, 푸시 알림, PWA 지원 등을 추가하여 네이티브 앱에 가까운 경험을 제공할 계획이다.
+</p>
       {/* 6. 향후 개선 */}
       <h3 style={{ marginBottom: "8px", fontSize: "15px", borderBottom: "1px solid #000", paddingBottom: "4px" }}>6. 향후 개선 사항</h3>
-      <p style={{ fontSize: "13px", lineHeight: "1.9", color: "#333" }}>
-        현재 기본 구조만 구현된 모바일 전용 페이지를 완성하고, 기획 단계에서 포함되었던 폰트 커스터마이징, 시간표 입력 및 공부 시간 추천 기능을 추가할 예정이다. 또한 Find ID/PW 기능, 구글 소셜 로그인 추가, 플랜카드 날짜순 정렬 고도화, 다국어 지원 등을 통해 더 많은 사용자가 편리하게 사용할 수 있도록 개선할 계획이다.
-      </p>
+<p style={{ fontSize: "13px", lineHeight: "1.9", color: "#333", marginBottom: "16px" }}>
+  현재 기본 구조만 구현된 모바일 전용 페이지를 완성하고, 기획 단계에서 포함되었던 폰트 커스터마이징, 시간표 입력 및 공부 시간 추천 기능을 추가할 예정이다. 또한 Find ID/PW 기능, 구글 소셜 로그인 추가, 플랜카드 날짜순 정렬 고도화, 다국어 지원 등을 통해 더 많은 사용자가 편리하게 사용할 수 있도록 개선할 계획이다.
+</p>
 
     </div>
   );
