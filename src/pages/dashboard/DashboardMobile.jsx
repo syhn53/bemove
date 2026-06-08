@@ -39,7 +39,7 @@ function LoginModal({ onClose, onLogin }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: "#fff", padding: "24px", width: "280px", position: "relative", borderRadius: "4px" }}>
+      <div style={{ background: "#fff", padding: "24px", width: "280px", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 10, right: 12, border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>✕</button>
         <h3 style={{ margin: "0 0 16px 0" }}>{isSignup ? "회원가입" : "로그인"}</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -75,7 +75,7 @@ function AddPlanModal({ onClose, onAdd }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={{ background: "#fff", padding: "24px", width: "300px", position: "relative", borderRadius: "4px" }}>
+      <div style={{ background: "#fff", padding: "24px", width: "300px", position: "relative" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 10, right: 12, border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>✕</button>
         <h3 style={{ margin: "0 0 16px 0" }}>Add Plan</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -110,6 +110,8 @@ export default function DashboardMobile() {
   const [activeMonth, setActiveMonth] = useState("January");
   const [showLogin, setShowLogin] = useState(false);
   const [showAddPlan, setShowAddPlan] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(null);
   const [touchStartX, setTouchStartX] = useState(null);
 
   useEffect(() => {
@@ -141,18 +143,14 @@ export default function DashboardMobile() {
     if (plan.firestoreId) {
       await deleteDoc(doc(db, "plans", plan.firestoreId));
       setPlans((prev) => prev.filter((p) => p.firestoreId !== plan.firestoreId));
-    } else if (plan.id.toString().startsWith("s")) {
+    } else if (String(plan.id).startsWith("s")) {
       setSamplePlans((prev) => prev.filter((p) => p.id !== plan.id));
     } else {
       setPlans((prev) => prev.filter((p) => p.id !== plan.id));
     }
   };
 
-  // 스와이프로 월 이동
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
-  };
-
+  const handleTouchStart = (e) => setTouchStartX(e.touches[0].clientX);
   const handleTouchEnd = (e) => {
     if (touchStartX === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX;
@@ -183,8 +181,8 @@ export default function DashboardMobile() {
 
       {/* NAV */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px" }}>
-        <span style={{ fontSize: "28px", color: "dimgray", fontWeight: "normal" }}>bemove</span>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <span style={{ fontSize: "28px", color: "dimgray" }}>bemove</span>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <button
             onClick={() => setShowAddPlan(true)}
             style={{ background: "#000", color: "#fff", border: "none", padding: "6px 12px", fontSize: "12px", cursor: "pointer" }}
@@ -192,10 +190,10 @@ export default function DashboardMobile() {
             + add
           </button>
           <button
-            onClick={() => user ? signOut(auth) : setShowLogin(true)}
-            style={{ background: "#fff", border: "1px solid #000", padding: "6px 12px", fontSize: "12px", cursor: "pointer" }}
+            onClick={() => setShowMenu((v) => !v)}
+            style={{ background: "#fff", border: "1px solid #000", padding: "6px 10px", fontSize: "16px", cursor: "pointer" }}
           >
-            {user ? user.email.split("@")[0] : "login"}
+            ☰
           </button>
         </div>
       </div>
@@ -229,7 +227,7 @@ export default function DashboardMobile() {
         ))}
       </div>
 
-      {/* 월 표시 + 스와이프 힌트 */}
+      {/* 월 표시 */}
       <div style={{ padding: "0 16px 8px" }}>
         <p style={{ fontSize: "16px", fontWeight: "bold", margin: 0 }}>{activeMonth}</p>
         <p style={{ fontSize: "11px", color: "rgba(0,0,0,0.3)", margin: "2px 0 0" }}>← 스와이프로 월을 이동할 수 있어요</p>
@@ -275,6 +273,75 @@ export default function DashboardMobile() {
           </div>
         ))}
       </div>
+
+      {/* 사이드 메뉴 */}
+      {showMenu && (
+        <>
+          {/* 오버레이 */}
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 200 }}
+            onClick={() => setShowMenu(false)}
+          />
+          {/* 메뉴 패널 */}
+          <div style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "220px",
+            background: "#fff",
+            zIndex: 201,
+            padding: "20px 16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <span style={{ fontSize: "14px", fontWeight: "bold" }}>menu</span>
+              <button onClick={() => setShowMenu(false)} style={{ border: "none", background: "none", fontSize: "18px", cursor: "pointer" }}>✕</button>
+            </div>
+
+            {[
+              { key: "priority", label: "priority" },
+              { key: "timeline", label: "timeline" },
+              { key: "qualifications", label: "qualifications" },
+              { key: "background", label: "background" },
+              { key: "ai", label: "ai recommend priority" },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => { setActiveMenu(key); setShowMenu(false); }}
+                style={{
+                  background: activeMenu === key ? "#000" : "#fff",
+                  color: activeMenu === key ? "#fff" : "#000",
+                  border: "1px solid #000",
+                  padding: "10px 12px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  textAlign: "left",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+
+            <div style={{ marginTop: "auto" }}>
+              <button
+                onClick={() => { setSamplePlans([]); setShowMenu(false); }}
+                style={{ display: "block", width: "100%", background: "#fff", border: "1px solid #000", padding: "10px 12px", cursor: "pointer", fontSize: "13px", textAlign: "left", marginBottom: "8px" }}
+              >
+                예시 데이터 삭제
+              </button>
+              <button
+                onClick={() => { user ? signOut(auth) : setShowLogin(true); setShowMenu(false); }}
+                style={{ display: "block", width: "100%", background: "#000", color: "#fff", border: "none", padding: "10px 12px", cursor: "pointer", fontSize: "13px", textAlign: "left" }}
+              >
+                {user ? `logout (${user.email.split("@")[0]})` : "login"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 모달들 */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={() => setShowLogin(false)} />}
