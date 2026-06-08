@@ -278,7 +278,7 @@ export default function Dashboard() {
   <div style={{
     position: "fixed",
     top: "42px",
-    right: "60px",  // login 버튼 위치에 맞게 조절
+    right: "100px",  // login 버튼 위치에 맞게 조절
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
