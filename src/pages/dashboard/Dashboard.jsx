@@ -278,7 +278,7 @@ export default function Dashboard() {
   <div style={{
     position: "fixed",
     top: "42px",
-    right: "100px",  // login 버튼 위치에 맞게 조절
+    right: "150px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -294,6 +294,9 @@ export default function Dashboard() {
         일정을 저장하려면 로그인하세요
       </p>
     )}
+    <p style={{ fontSize: "11px", color: "rgba(0,0,0,0.25)", margin: 0 }}>
+      예시 데이터는 settings에서 지울 수 있어요
+    </p>
   </div>
 )}
         {/* NAV */}
