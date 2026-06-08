@@ -273,20 +273,30 @@ export default function Dashboard() {
         />
 
         {/* 힌트 텍스트 */}
-        {showHint && (
-          <div style={{
-            position: "fixed",
-            bottom: "30px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "12px",
-            color: "rgba(0,0,0,0.3)",
-            zIndex: 50,
-            pointerEvents: "none",
-          }}>
-            플랜카드를 움직여보세요
-          </div>
-        )}
+        {/* 힌트 텍스트 */}
+{showHint && (
+  <div style={{
+    position: "fixed",
+    bottom: "80px",  // ⭐ 30px → 80px으로 위로
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px",
+    zIndex: 50,
+    pointerEvents: "none",
+  }}>
+    <p style={{ fontSize: "12px", color: "rgba(0,0,0,0.3)", margin: 0 }}>
+      플랜카드를 움직여보세요
+    </p>
+    {!user && (
+      <p style={{ fontSize: "11px", color: "rgba(0,0,0,0.25)", margin: 0 }}>
+        일정을 저장하려면 로그인하세요
+      </p>
+    )}
+  </div>
+)}
 
         {/* NAV */}
         <nav className="nav-bar modern-nav" id="nav">
