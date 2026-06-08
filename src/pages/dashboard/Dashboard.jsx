@@ -277,13 +277,13 @@ export default function Dashboard() {
 {showHint && (
   <div style={{
     position: "fixed",
-    bottom: "80px",  // ⭐ 30px → 80px으로 위로
+    top: "42px",
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "6px",
+    gap: "4px",
     zIndex: 50,
     pointerEvents: "none",
   }}>
