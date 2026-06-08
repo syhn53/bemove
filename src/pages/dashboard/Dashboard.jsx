@@ -13,6 +13,7 @@ import Login from "./panels/login";
 import { auth, db } from "../../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import Report from "./panels/report";
 
 const getRandomPosition = (existingPlans) => {
   const cardW = 290;
@@ -214,10 +215,9 @@ return () => {
 
 if (activePanel === "report") return (
   <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
-    <div style={{ background: "#fff", width: "600px", maxHeight: "75vh", overflowY: "auto", padding: "24px", position: "relative" }}>
+    <div style={{ background: "#fff", width: "700px", maxHeight: "80vh", overflowY: "auto", padding: "32px", position: "relative" }}>
       <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
-      <h3 style={{ marginBottom: "16px" }}>Report</h3>
-      <p style={{ fontSize: "13px", color: "#666" }}>내용 준비 중</p>
+      <Report />
     </div>
   </div>
 );
