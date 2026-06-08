@@ -10,10 +10,10 @@ import Qualifications from "./panels/Qualifications";
 import Background from "./panels/background";
 import Ai from "./panels/ai recommed priotity";
 import Login from "./panels/login";
+import Report from "./panels/report";
 import { auth, db } from "../../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
-import Report from "./panels/report";
 
 const getRandomPosition = (existingPlans) => {
   const cardW = 290;
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [bgColor, setBgColor] = useState("#bee6ab");
   const [plans, setPlans] = useState([]);
   const [user, setUser] = useState(null);
+  const [showHint, setShowHint] = useState(true);
   const [samplePlans, setSamplePlans] = useState([
     { id: "s1", top: 120, left: 80, date: "January 8", month: "January", day: "8", title: "Fantasies for Knowledge", contents: "상상력과 지식의 관계에 대한 강연", category: "Lecture" },
     { id: "s2", top: 280, left: 350, date: "January 10", month: "January", day: "10", title: "Militance Is an Alternative", contents: "대안적 실천에 대한 발표", category: "Performance" },
@@ -72,16 +73,22 @@ export default function Dashboard() {
   }, []);
 
   const addPlan = async (newPlan) => {
-    if (!user) return alert("로그인이 필요해요!");
     const allPlans = [...samplePlans, ...plans];
     const { top, left } = getRandomPosition(allPlans);
-    const plan = { ...newPlan, id: Date.now(), uid: user.uid, top, left };
-    const docRef = await addDoc(collection(db, "plans"), plan);
-    setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
+    const plan = { ...newPlan, id: Date.now(), top, left };
+    if (user) {
+      const docRef = await addDoc(collection(db, "plans"), { ...plan, uid: user.uid });
+      setPlans((prev) => [...prev, { ...plan, firestoreId: docRef.id }]);
+    } else {
+      setPlans((prev) => [...prev, plan]);
+    }
   };
 
   const updatePlan = async (updatedPlan) => {
-    if (!updatedPlan.firestoreId) return;
+    if (!updatedPlan.firestoreId) {
+      setPlans((prev) => prev.map((p) => p.id === updatedPlan.id ? updatedPlan : p));
+      return;
+    }
     const ref = doc(db, "plans", updatedPlan.firestoreId);
     await updateDoc(ref, updatedPlan);
     setPlans((prev) => prev.map((p) => p.firestoreId === updatedPlan.firestoreId ? updatedPlan : p));
@@ -93,6 +100,7 @@ export default function Dashboard() {
       setPlans((prev) => prev.filter((p) => p.firestoreId !== firestoreId));
     } else {
       setSamplePlans((prev) => prev.filter((p) => p.id !== id));
+      setPlans((prev) => prev.filter((p) => p.id !== id));
     }
   };
 
@@ -110,32 +118,43 @@ export default function Dashboard() {
     let mx = 0;
     let cx = 0;
 
-   const mouseMove = (e) => {
-  if (e.clientX >= 0 && e.clientX <= window.innerWidth &&
-      e.clientY >= 0 && e.clientY <= window.innerHeight) {
-    mx = e.clientX / window.innerWidth - 0.5;
-  } else {
-    mx = 0; // ⭐ 창 밖이면 바로 0으로
-  }
-};
+    const mouseMove = (e) => {
+      if (e.clientX >= 0 && e.clientX <= window.innerWidth &&
+          e.clientY >= 0 && e.clientY <= window.innerHeight) {
+        mx = e.clientX / window.innerWidth - 0.5;
+      } else {
+        mx = 0;
+      }
+    };
 
-const mouseLeave = () => { mx = 0; };
+    const mouseLeave = () => { mx = 0; };
+    const visibilityChange = () => { if (document.hidden) mx = 0; };
 
-const visibilityChange = () => {
-  if (document.hidden) mx = 0; // ⭐ 탭 전환시 멈춤
-};
+    document.addEventListener("mousemove", mouseMove);
+    document.addEventListener("mouseleave", mouseLeave);
+    document.addEventListener("visibilitychange", visibilityChange);
 
-document.addEventListener("mousemove", mouseMove);
-document.addEventListener("mouseleave", mouseLeave);
-document.addEventListener("visibilitychange", visibilityChange);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    let frame;
 
-// cleanup에도 추가
-return () => {
-  document.removeEventListener("mousemove", mouseMove);
-  document.removeEventListener("mouseleave", mouseLeave);
-  document.removeEventListener("visibilitychange", visibilityChange);
-  cancelAnimationFrame(frame);
-};
+    const animate = () => {
+      cx = lerp(cx, mx, 0.07);
+      if (bg) bg.style.transform = `translateX(${cx * -28}px)`;
+      boxes.forEach((box) => {
+        const speed = parseFloat(box.dataset.speed || 0.05);
+        box.style.transform = `translateX(${cx * speed * 600}px)`;
+      });
+      frame = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      document.removeEventListener("mousemove", mouseMove);
+      document.removeEventListener("mouseleave", mouseLeave);
+      document.removeEventListener("visibilitychange", visibilityChange);
+      cancelAnimationFrame(frame);
+    };
   }, []);
 
   const modalPanels = ["addplan", "login", "priority", "background", "qualifications", "settings", "report"];
@@ -188,39 +207,38 @@ return () => {
       </div>
     );
     if (activePanel === "settings") return (
-  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
-    <div className="modal-box">
-      <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
-      <div style={{ padding: "10px" }}>
-        <h3 style={{ marginBottom: "16px" }}>Settings</h3>
-        <button
-          onClick={() => { setSamplePlans([]); setBgImages([]); setActivePanel(null); }}
-          style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
-        >
-          예시 데이터 삭제
-        </button>
-        <button
-          onClick={() => { setActivePanel(null); setTimeout(() => setActivePanel("report"), 100); }}
-          style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
-        >
-          report
-        </button>
-        <p style={{ padding: "8px", border: "1px solid #000", margin: 0, fontSize: "13px" }}>
-          문의사항: sohen0531@naver.com
-        </p>
+      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
+        <div className="modal-box">
+          <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
+          <div style={{ padding: "10px" }}>
+            <h3 style={{ marginBottom: "16px" }}>Settings</h3>
+            <button
+              onClick={() => { setSamplePlans([]); setBgImages([]); setActivePanel(null); }}
+              style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
+            >
+              예시 데이터 삭제
+            </button>
+            <button
+              onClick={() => { setActivePanel(null); setTimeout(() => setActivePanel("report"), 100); }}
+              style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
+            >
+              report
+            </button>
+            <p style={{ padding: "8px", border: "1px solid #000", margin: 0, fontSize: "13px" }}>
+              문의사항: sohen0531@naver.com
+            </p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-);
-
-if (activePanel === "report") return (
-  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
-    <div style={{ background: "#fff", width: "700px", maxHeight: "80vh", overflowY: "auto", padding: "32px", position: "relative" }}>
-      <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
-      <Report />
-    </div>
-  </div>
-);
+    );
+    if (activePanel === "report") return (
+      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
+        <div style={{ background: "#fff", width: "700px", maxHeight: "80vh", overflowY: "auto", padding: "32px", position: "relative" }}>
+          <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
+          <Report />
+        </div>
+      </div>
+    );
     return null;
   };
 
@@ -246,7 +264,29 @@ if (activePanel === "report") return (
           ))}
         </div>
 
-        <PlanCards plans={[...samplePlans, ...plans]} onUpdate={updatePlan} onDelete={deletePlan} animate={activePanel === "timeline"} />
+        <PlanCards
+          plans={[...samplePlans, ...plans]}
+          onUpdate={updatePlan}
+          onDelete={deletePlan}
+          animate={activePanel === "timeline"}
+          onDragEnd={() => setShowHint(false)}
+        />
+
+        {/* 힌트 텍스트 */}
+        {showHint && (
+          <div style={{
+            position: "fixed",
+            bottom: "30px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            fontSize: "12px",
+            color: "rgba(0,0,0,0.3)",
+            zIndex: 50,
+            pointerEvents: "none",
+          }}>
+            플랜카드를 움직여보세요
+          </div>
+        )}
 
         {/* NAV */}
         <nav className="nav-bar modern-nav" id="nav">
@@ -269,7 +309,6 @@ if (activePanel === "report") return (
                 {label}
               </button>
             ))}
-            {/* settings 버튼 */}
             <button
               className={`nav-box settings ${activePanel === "settings" ? "active" : ""}`}
               onClick={() => togglePanel("settings")}

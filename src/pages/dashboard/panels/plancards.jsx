@@ -64,7 +64,7 @@ function EditModal({ plan, onUpdate, onDelete, onClose }) {
   );
 }
 
-function DraggableCard({ plan, onUpdate, onClick, animate, idx }) {
+function DraggableCard({ plan, onUpdate, onClick, animate, idx, onDragEnd }) {
   const dragRef = useRef(null);
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -81,29 +81,16 @@ function DraggableCard({ plan, onUpdate, onClick, animate, idx }) {
   };
 
   const handleMouseMove = (e) => {
-  if (e.clientX < 0 || e.clientX > window.innerWidth ||
-      e.clientY < 0 || e.clientY > window.innerHeight) {
-    targetRef.current = 0;
-    return;
-  }
-  const x = e.clientX / window.innerWidth;
-  if (x > 0.7) {
-    targetRef.current = ((x - 0.7) / 0.3) * 8;
-  } else if (x < 0.3) {
-    targetRef.current = -(((0.3 - x) / 0.3) * 8);
-  } else {
-    targetRef.current = 0;
-  }
-};
+    if (!isDragging.current) return;
+    const dx = e.clientX - startPos.current.x;
+    const dy = e.clientY - startPos.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved.current = true;
+    if (dragRef.current) {
+      dragRef.current.style.left = `${startCard.current.left + dx}px`;
+      dragRef.current.style.top = `${startCard.current.top + dy + 100}px`;
+    }
+  };
 
-const handleVisibilityChange = () => {
-  if (document.hidden) targetRef.current = 0;
-};
-
-document.addEventListener("visibilitychange", handleVisibilityChange);
-
-// cleanup에도
-document.removeEventListener("visibilitychange", handleVisibilityChange);
   const handleMouseUp = (e) => {
     if (!isDragging.current) return;
     isDragging.current = false;
@@ -113,6 +100,7 @@ document.removeEventListener("visibilitychange", handleVisibilityChange);
       const newLeft = startCard.current.left + dx;
       const newTop = startCard.current.top + dy;
       onUpdate({ ...plan, left: newLeft, top: newTop });
+      if (onDragEnd) onDragEnd();
     } else {
       onClick(plan);
     }
@@ -150,7 +138,7 @@ document.removeEventListener("visibilitychange", handleVisibilityChange);
   );
 }
 
-export default function PlanCards({ plans = [], onUpdate, onDelete, animate }) {
+export default function PlanCards({ plans = [], onUpdate, onDelete, animate, onDragEnd }) {
   const [activeMonth, setActiveMonth] = useState("January");
   const [editingPlan, setEditingPlan] = useState(null);
   const containerRef = useRef(null);
@@ -164,7 +152,8 @@ export default function PlanCards({ plans = [], onUpdate, onDelete, animate }) {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (e.clientX < 0 || e.clientX > window.innerWidth) {
+      if (e.clientX < 0 || e.clientX > window.innerWidth ||
+          e.clientY < 0 || e.clientY > window.innerHeight) {
         targetRef.current = 0;
         return;
       }
@@ -178,33 +167,29 @@ export default function PlanCards({ plans = [], onUpdate, onDelete, animate }) {
       }
     };
 
-    const handleMouseLeave = () => {
-      targetRef.current = 0;
-    };
+    const handleMouseLeave = () => { targetRef.current = 0; };
+    const handleVisibilityChange = () => { if (document.hidden) targetRef.current = 0; };
 
-    const animate = () => {
+    const animateScroll = () => {
       scrollRef.current += targetRef.current;
       scrollRef.current = Math.max(0, scrollRef.current);
       if (containerRef.current) {
         containerRef.current.style.transform = `translateX(${-scrollRef.current}px)`;
       }
-      frameRef.current = requestAnimationFrame(animate);
+      frameRef.current = requestAnimationFrame(animateScroll);
     };
-const handleVisibilityChange = () => {
-  if (document.hidden) targetRef.current = 0;
-};
 
     window.addEventListener("mousemove", handleMouseMove);
-document.addEventListener("mouseleave", handleMouseLeave);
-document.addEventListener("visibilitychange", handleVisibilityChange);
-frameRef.current = requestAnimationFrame(animate);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    frameRef.current = requestAnimationFrame(animateScroll);
 
-return () => {
-  window.removeEventListener("mousemove", handleMouseMove);
-  document.removeEventListener("mouseleave", handleMouseLeave);
-  document.removeEventListener("visibilitychange", handleVisibilityChange);
-  cancelAnimationFrame(frameRef.current);
-};
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      cancelAnimationFrame(frameRef.current);
+    };
   }, []);
 
   const filtered = plans.filter((p) => p.month === activeMonth);
@@ -264,6 +249,7 @@ return () => {
             onClick={setEditingPlan}
             animate={animate}
             idx={idx}
+            onDragEnd={onDragEnd}
           />
         ))}
       </div>
