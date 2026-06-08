@@ -278,10 +278,10 @@ export default function Dashboard() {
   <div style={{
     position: "fixed",
     top: "42px",
-    right: "10px",  // ⭐ 오른쪽 끝 login 버튼 아래
+    right: "60px",  // login 버튼 위치에 맞게 조절
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: "4px",
     zIndex: 50,
     pointerEvents: "none",
@@ -296,7 +296,6 @@ export default function Dashboard() {
     )}
   </div>
 )}
-
         {/* NAV */}
         <nav className="nav-bar modern-nav" id="nav">
           <span className="nav-site">bemove</span>
