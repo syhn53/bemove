@@ -137,7 +137,7 @@ return () => {
 };
   }, []);
 
-  const modalPanels = ["addplan", "login", "priority", "background", "qualifications", "settings"];
+  const modalPanels = ["addplan", "login", "priority", "background", "qualifications", "settings", "report"];
 
   const modalContent = () => {
     if (activePanel === "addplan") return (
@@ -187,24 +187,40 @@ return () => {
       </div>
     );
     if (activePanel === "settings") return (
-      <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
-        <div className="modal-box">
-          <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
-          <div style={{ padding: "10px" }}>
-            <h3 style={{ marginBottom: "16px" }}>Settings</h3>
-            <button
-              onClick={() => { setSamplePlans([]); setBgImages([]); setActivePanel(null); }}
-              style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
-            >
-              예시 데이터 삭제
-            </button>
-            <p style={{ padding: "8px", border: "1px solid #000", margin: 0, fontSize: "13px" }}>
-  문의사항: sohen0531@naver.com
-</p>
-          </div>
-        </div>
+  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
+    <div className="modal-box">
+      <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
+      <div style={{ padding: "10px" }}>
+        <h3 style={{ marginBottom: "16px" }}>Settings</h3>
+        <button
+          onClick={() => { setSamplePlans([]); setBgImages([]); setActivePanel(null); }}
+          style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
+        >
+          예시 데이터 삭제
+        </button>
+        <button
+          onClick={() => { setActivePanel(null); setTimeout(() => setActivePanel("report"), 100); }}
+          style={{ display: "block", width: "100%", background: "#000", color: "#fff", padding: "8px", border: "none", cursor: "pointer", marginBottom: "10px", textAlign: "left" }}
+        >
+          report
+        </button>
+        <p style={{ padding: "8px", border: "1px solid #000", margin: 0, fontSize: "13px" }}>
+          문의사항: sohen0531@naver.com
+        </p>
       </div>
-    );
+    </div>
+  </div>
+);
+
+if (activePanel === "report") return (
+  <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setActivePanel(null)}>
+    <div style={{ background: "#fff", width: "600px", maxHeight: "75vh", overflowY: "auto", padding: "24px", position: "relative" }}>
+      <button className="modal-close" onClick={() => setActivePanel(null)}>✕</button>
+      <h3 style={{ marginBottom: "16px" }}>Report</h3>
+      <p style={{ fontSize: "13px", color: "#666" }}>내용 준비 중</p>
+    </div>
+  </div>
+);
     return null;
   };
 
