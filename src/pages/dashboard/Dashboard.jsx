@@ -277,12 +277,12 @@ export default function Dashboard() {
 {showHint && (
   <div style={{
     position: "fixed",
-    top: "85px",  // 월 버튼(60px) 아래
-    left: "50%",
-    transform: "translateX(-50%)",
+    top: "85px",
+    left: "20px",  // ⭐ 왼쪽으로
+    transform: "none",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: "4px",
     zIndex: 50,
     pointerEvents: "none",
