@@ -310,7 +310,7 @@ export default function Dashboard() {
               { key: "qualifications", label: "qualifications" },
               { key: "background", label: "background" },
               { key: "ai", label: "ai recommend priority" },
-              { key: "login", label: user ? user.email : "login" },
+              { key: "login", label: user ? user.email.split('@')[0] : "login" },
             ].map(({ key, label }) => (
               <button
                 key={key}
