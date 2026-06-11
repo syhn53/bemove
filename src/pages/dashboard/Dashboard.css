@@ -52,7 +52,7 @@ html, body {
 }
 
 .modern-nav .nav-site {
-  font-size: 70px;
+  font-size: clamp(28px, 5vw, 70px);
   margin-right: 18px;
   white-space: nowrap;
   color: dimgray;
@@ -61,12 +61,14 @@ html, body {
 .modern-nav .nav-links-row {
   display: flex;
   justify-content: flex-start;
-  gap: 100px;
+  gap: clamp(8px, 2vw, 100px);
   align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: hidden;
 }
 
 .nav-box {
-  font-size: 20px;
+  font-size: clamp(10px, 1.3vw, 20px);
   color: #000;
   text-decoration: none;
   background: #fff;
